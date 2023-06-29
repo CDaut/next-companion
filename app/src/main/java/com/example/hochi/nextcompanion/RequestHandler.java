@@ -12,6 +12,7 @@ import java.net.URLEncoder;
 
 public class RequestHandler extends AsyncTask<Void, Void, String> {
 
+    private static final String NEXTBIKE_API_URL = "https://api.nextbike.net/";
     private String mHTTPmethod;
     private String mEndpoint;
     private AsyncTaskCallbacks<String> callback;
@@ -29,21 +30,21 @@ public class RequestHandler extends AsyncTask<Void, Void, String> {
     protected String doInBackground(Void... params) {
         StringBuilder response = new StringBuilder();
         StringBuilder urlParameters = new StringBuilder();
-        int i=0;
-        while (i<mCredentials.length) {
+        int i = 0;
+        while (i < mCredentials.length) {
             urlParameters.append("&").append(mCredentials[i])
-                    .append(URLEncoder.encode(mCredentials[i+1]));
-            i=i+2;
+                    .append(URLEncoder.encode(mCredentials[i + 1]));
+            i = i + 2;
         }
 
         HttpURLConnection connection = null;
         try {
 
             //Create connection
-            URL url = new URL("https://api.nextbike.net/" + mEndpoint);
+            URL url = new URL(NEXTBIKE_API_URL + mEndpoint);
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod(mHTTPmethod);
-            if(mHTTPmethod.equals("POST")) {
+            if (mHTTPmethod.equals("POST")) {
                 connection.setRequestProperty("Content-Type",
                         "application/x-www-form-urlencoded");
 
@@ -57,17 +58,17 @@ public class RequestHandler extends AsyncTask<Void, Void, String> {
             }
 
             //Send request
-            DataOutputStream wr = new DataOutputStream (
-                    connection.getOutputStream ());
-            wr.writeBytes (urlParameters.toString());
-            wr.flush ();
-            wr.close ();
+            DataOutputStream wr = new DataOutputStream(
+                    connection.getOutputStream());
+            wr.writeBytes(urlParameters.toString());
+            wr.flush();
+            wr.close();
 
             //Get Response
             InputStream is = connection.getInputStream();
             BufferedReader rd = new BufferedReader(new InputStreamReader(is));
             String line;
-            while((line = rd.readLine()) != null) {
+            while ((line = rd.readLine()) != null) {
                 response.append(line);
                 response.append('\r');
             }
@@ -77,7 +78,7 @@ public class RequestHandler extends AsyncTask<Void, Void, String> {
             e.printStackTrace();
 
         } finally {
-            if(connection != null) {
+            if (connection != null) {
                 connection.disconnect();
             }
         }

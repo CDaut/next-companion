@@ -4,7 +4,7 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.example.hochi.nextcompanion"
-        minSdkVersion 15
+        minSdk 28
         targetSdkVersion 28
         versionCode 9
         versionName "0.1.7.2"

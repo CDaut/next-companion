@@ -12,9 +12,11 @@ import android.widget.TextView;
 
 import org.w3c.dom.Text;
 
+import java.util.Optional;
+
 public class RentActivity extends AppCompatActivity implements AsyncTaskCallbacks<String> {
-    private RequestHandler rentRequestTask = null;
     private static final String DEBUG_TAG = "RENT_ACTIVITY";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,12 +26,12 @@ public class RentActivity extends AppCompatActivity implements AsyncTaskCallback
         mRentSubmitButton.setOnClickListener(view -> rentRequest());
 
         Intent intent = getIntent();
-        Uri data = intent.getData();
+        Optional<Uri> dataOrNull = Optional.ofNullable(intent.getData());
 
-        if (data != null) {
+        dataOrNull.ifPresent(data -> {
             String bikeID = data.toString().substring(15);
             ((TextView) findViewById(R.id.bike_id)).setText(bikeID);
-        }
+        });
     }
 
     void rentRequest() {
@@ -48,7 +50,7 @@ public class RentActivity extends AppCompatActivity implements AsyncTaskCallback
                 "bike=", bikeID
         };
 
-        rentRequestTask = new RequestHandler(this, "POST",
+        RequestHandler rentRequestTask = new RequestHandler(this, "POST",
                 "api/rent.json", params);
         rentRequestTask.execute((Void) null);
     }

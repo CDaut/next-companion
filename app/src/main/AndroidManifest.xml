@@ -24,21 +24,26 @@
         <activity
             android:name=".LoginActivity"
             android:label="@string/title_activity_login" />
-        <activity android:name=".RentActivity"
+        <activity
+            android:name=".RentActivity"
             android:label="@string/title_activity_rent">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
             <intent-filter android:label="@string/action_open_with">
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="http"
+
+                <data
                     android:host="nxtb.it"
-                    android:pathPrefix="/" />
+                    android:pathPrefix="/"
+                    android:scheme="http" />
             </intent-filter>
         </activity>
-        <activity android:name=".ReturnActivity"
+        <activity
+            android:name=".ReturnActivity"
             android:label="@string/title_activity_return">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
