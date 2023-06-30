@@ -1,28 +1,35 @@
 package com.example.hochi.nextcompanion.request_utils;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.example.hochi.nextcompanion.AsyncTaskCallbacks;
+import com.example.hochi.nextcompanion.exceptions.ResourceCloseException;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
-import java.io.InputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
 public class RequestHandler extends AsyncTask<Void, Void, String> {
 
+    private static final String LOG_TAG = "RequestHandler";
     private static final String NEXTBIKE_API_URL = "https://api.nextbike.net/";
-    private String mHTTPmethod;
-    private String mEndpoint;
-    private AsyncTaskCallbacks<String> callback;
-    private String[] mCredentials;
+    private final String mHTTPmethod;
+    private final String mEndpoint;
+    private final AsyncTaskCallbacks<String> callback;
+    private final String[] mCredentials;
 
-    public RequestHandler(AsyncTaskCallbacks<String> act, String HTTPmethod,
-                   String endpoint, String[] credentials) {
-        mHTTPmethod = HTTPmethod;
+    public RequestHandler(AsyncTaskCallbacks<String> act, String httpMethod,
+                          String endpoint, String[] credentials) {
+        mHTTPmethod = httpMethod;
         mEndpoint = endpoint;
         mCredentials = credentials;
         callback = act;
@@ -30,62 +37,32 @@ public class RequestHandler extends AsyncTask<Void, Void, String> {
 
     @Override
     protected String doInBackground(Void... params) {
-        StringBuilder response = new StringBuilder();
         StringBuilder urlParameters = new StringBuilder();
-        int i = 0;
-        while (i < mCredentials.length) {
-            urlParameters.append("&").append(mCredentials[i])
-                    .append(URLEncoder.encode(mCredentials[i + 1]));
-            i = i + 2;
+        String response = "noResponse";
+
+        for (int i = 0; i < mCredentials.length; i += 2) {
+            try {
+                urlParameters.append("&").append(mCredentials[i])
+                        .append(URLEncoder.encode(mCredentials[i + 1], StandardCharsets.UTF_8.name()));
+            } catch (UnsupportedEncodingException e) {
+                Log.e(LOG_TAG, "Un-encodable input data using UTF8: " + mCredentials[i + 1]);
+            }
         }
 
-        HttpURLConnection connection = null;
+        //big try/catch because of URL and connection errors
         try {
-
-            //Create connection
             URL url = new URL(NEXTBIKE_API_URL + mEndpoint);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod(mHTTPmethod);
-            if (mHTTPmethod.equals("POST")) {
-                connection.setRequestProperty("Content-Type",
-                        "application/x-www-form-urlencoded");
+            HttpURLConnection unclosableConnection = (HttpURLConnection) url.openConnection();
 
-                connection.setRequestProperty("Content-Length", "" +
-                        Integer.toString(urlParameters.toString().getBytes().length));
-                connection.setRequestProperty("Content-Language", "en-US");
+            response = trySend(unclosableConnection, urlParameters.toString());
 
-                connection.setUseCaches(false);
-                connection.setDoInput(true);
-                connection.setDoOutput(true);
-            }
-
-            //Send request
-            DataOutputStream wr = new DataOutputStream(
-                    connection.getOutputStream());
-            wr.writeBytes(urlParameters.toString());
-            wr.flush();
-            wr.close();
-
-            //Get Response
-            InputStream is = connection.getInputStream();
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-            String line;
-            while ((line = rd.readLine()) != null) {
-                response.append(line);
-                response.append('\r');
-            }
-            rd.close();
-        } catch (Exception e) {
-
-            e.printStackTrace();
-
-        } finally {
-            if (connection != null) {
-                connection.disconnect();
-            }
+        } catch (MalformedURLException e) {
+            Log.e(LOG_TAG, "Unparsable URL " + NEXTBIKE_API_URL + mEndpoint);
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "An IO Error occured");
         }
 
-        return response.toString();
+        return response;
     }
 
     @Override
@@ -97,5 +74,54 @@ public class RequestHandler extends AsyncTask<Void, Void, String> {
     @Override
     protected void onCancelled() {
         //TODO: proper handling if needed
+    }
+
+    private String trySend(HttpURLConnection connection, String urlParameters) throws ResourceCloseException {
+        try (AutoCloseable ignored = connection::disconnect) {
+
+            //Create connection
+            connection.setRequestMethod(mHTTPmethod);
+            if (mHTTPmethod.equals("POST")) {
+                connection.setRequestProperty("Content-Type",
+                        "application/x-www-form-urlencoded");
+
+                connection.setRequestProperty("Content-Length", "" +
+                        urlParameters.getBytes().length);
+                connection.setRequestProperty("Content-Language", "en-US");
+
+                connection.setUseCaches(false);
+                connection.setDoInput(true);
+                connection.setDoOutput(true);
+            }
+
+            //Send request
+            try (DataOutputStream wr = new DataOutputStream(
+                    connection.getOutputStream())) {
+                wr.write(urlParameters.getBytes(StandardCharsets.UTF_8));
+                wr.flush();
+            }
+
+            int responseCode = connection.getResponseCode();
+
+            //Get Response if code = 200
+            if (responseCode == 200) {
+                try (BufferedReader responeBuffer =
+                             new BufferedReader(
+                                     new InputStreamReader(connection.getInputStream())
+                             )) {
+                    return responeBuffer.lines().collect(Collectors.joining(""));
+                }
+                //if an error occured get error instead of output stream
+            } else {
+                try (BufferedReader errorBuffer =
+                             new BufferedReader(
+                                     new InputStreamReader(connection.getErrorStream())
+                             )) {
+                    return errorBuffer.lines().collect(Collectors.joining(""));
+                }
+            }
+        } catch (Exception e) {
+            throw new ResourceCloseException(e.getMessage());
+        }
     }
 }

@@ -16,7 +16,7 @@ import com.example.hochi.nextcompanion.request_utils.RequestHandler;
 import java.util.Optional;
 
 public class RentActivity extends AppCompatActivity implements AsyncTaskCallbacks<String> {
-    private static final String DEBUG_TAG = "RENT_ACTIVITY";
+    private static final String DEBUG_TAG = "RentActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +46,7 @@ public class RentActivity extends AppCompatActivity implements AsyncTaskCallback
         String loginKey = sharedPref.getString("loginKey", defaultValue);
 
         String[] params = {
+                "show_errors=","1",
                 "apikey=", getString(R.string.apikey),
                 "loginkey=", loginKey,
                 "bike=", bikeID
