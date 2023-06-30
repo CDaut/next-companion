@@ -36,7 +36,7 @@ public class RentActivity extends AppCompatActivity implements AsyncTaskCallback
         });
     }
 
-    void rentRequest() {
+    private void rentRequest() {
         //Prepare request to rent bike
         TextView mBikeInput;
         mBikeInput = findViewById(R.id.bike_id);
