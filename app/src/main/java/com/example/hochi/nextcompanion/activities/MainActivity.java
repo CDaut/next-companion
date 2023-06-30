@@ -1,4 +1,4 @@
-package com.example.hochi.nextcompanion;
+package com.example.hochi.nextcompanion.activities;
 
 import android.content.Context;
 import android.content.Intent;
@@ -11,10 +11,13 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.example.hochi.nextcompanion.AsyncTaskCallbacks;
+import com.example.hochi.nextcompanion.R;
+import com.example.hochi.nextcompanion.request_utils.RequestHandler;
 
 import org.json.JSONArray;
 import org.json.JSONException;

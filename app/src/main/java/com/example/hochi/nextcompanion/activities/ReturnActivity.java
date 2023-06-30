@@ -1,4 +1,4 @@
-package com.example.hochi.nextcompanion;
+package com.example.hochi.nextcompanion.activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -8,6 +8,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.example.hochi.nextcompanion.AsyncTaskCallbacks;
+import com.example.hochi.nextcompanion.R;
+import com.example.hochi.nextcompanion.request_utils.RequestHandler;
 
 public class ReturnActivity extends AppCompatActivity implements AsyncTaskCallbacks<String> {
     private String[] bikeArray;

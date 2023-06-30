@@ -1,6 +1,8 @@
-package com.example.hochi.nextcompanion;
+package com.example.hochi.nextcompanion.request_utils;
 
 import android.os.AsyncTask;
+
+import com.example.hochi.nextcompanion.AsyncTaskCallbacks;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -18,7 +20,7 @@ public class RequestHandler extends AsyncTask<Void, Void, String> {
     private AsyncTaskCallbacks<String> callback;
     private String[] mCredentials;
 
-    RequestHandler(AsyncTaskCallbacks<String> act, String HTTPmethod,
+    public RequestHandler(AsyncTaskCallbacks<String> act, String HTTPmethod,
                    String endpoint, String[] credentials) {
         mHTTPmethod = HTTPmethod;
         mEndpoint = endpoint;

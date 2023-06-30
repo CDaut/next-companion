@@ -1,5 +1,5 @@
 package com.example.hochi.nextcompanion;
 
-interface AsyncTaskCallbacks<T> {
+public interface AsyncTaskCallbacks<T> {
     void onTaskComplete(T response);
 }
