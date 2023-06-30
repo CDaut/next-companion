@@ -26,7 +26,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements AsyncTaskCallbacks<String> {
-    private RequestHandler getBikesTask = null;
+    private static final String LOGINKEY_SHARED_PREFERENCES_KEY = "loginKey";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,15 +49,14 @@ public class MainActivity extends AppCompatActivity implements AsyncTaskCallback
     protected void onStart() {
         super.onStart();
         //pre-condition: Is there a login key?
-        SharedPreferences sharedPref = getSharedPreferences("persistence", MODE_PRIVATE);
-        String defaultValue = "nokey";
-        String loginKey = sharedPref.getString("loginKey", defaultValue);
+        SharedPreferences sharedPref = getSharedPreferences(getString(R.string.loginSharedPreferencesName), MODE_PRIVATE);
+
+        String loginKey = sharedPref.getString(LOGINKEY_SHARED_PREFERENCES_KEY, null);
         //if not, go to LoginActivity
-        if (loginKey.equals("nokey")) {
+        if (loginKey == null) {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
-        }
-        else {
+        } else {
             reloadBikeList();
         }
     }
@@ -79,9 +78,13 @@ public class MainActivity extends AppCompatActivity implements AsyncTaskCallback
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_logout) {
-            SharedPreferences sharedPref = getSharedPreferences("persistence", MODE_PRIVATE);
+            SharedPreferences sharedPref = getSharedPreferences(
+                    getString(R.string.loginSharedPreferencesName),
+                    MODE_PRIVATE
+            );
+
             SharedPreferences.Editor editor = sharedPref.edit();
-            editor.remove("loginKey");
+            editor.remove(LOGINKEY_SHARED_PREFERENCES_KEY);
             editor.apply();
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
@@ -97,16 +100,19 @@ public class MainActivity extends AppCompatActivity implements AsyncTaskCallback
 
     protected void reloadBikeList() {
         //get loginkey
-        SharedPreferences sharedPref = getSharedPreferences("persistence", MODE_PRIVATE);
-        String defaultValue = "nokey";
-        String loginKey = sharedPref.getString("loginKey", defaultValue);
+        SharedPreferences sharedPref = getSharedPreferences(
+                getString(R.string.loginSharedPreferencesName),
+                MODE_PRIVATE
+        );
+
+        String loginKey = sharedPref.getString(LOGINKEY_SHARED_PREFERENCES_KEY, null);
 
         String[] params = {
                 "apikey=", getString(R.string.apikey),
                 "loginkey=", loginKey
         };
 
-        getBikesTask = new RequestHandler(this, "POST",
+        RequestHandler getBikesTask = new RequestHandler(this, "POST",
                 "api/getOpenRentals.json", params);
         getBikesTask.execute((Void) null);
     }
@@ -139,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements AsyncTaskCallback
 
             //Print indicator if empty
             TextView tv = findViewById(R.id.noBikes);
-            if(list.isEmpty()) tv.setVisibility(View.VISIBLE);
+            if (list.isEmpty()) tv.setVisibility(View.VISIBLE);
             else tv.setVisibility(View.INVISIBLE);
 
             try {
@@ -155,8 +161,7 @@ public class MainActivity extends AppCompatActivity implements AsyncTaskCallback
                         String[] bikeArray = {bID, stID, lockE};
                         intent.putExtra("bike", bikeArray);
                         startActivity(intent);
-                    }
-                    catch (JSONException e) {
+                    } catch (JSONException e) {
                         e.printStackTrace();
                     }
                 });
@@ -164,8 +169,5 @@ public class MainActivity extends AppCompatActivity implements AsyncTaskCallback
                 e.printStackTrace();
             }
         }
-//        else {
-//            //TODO: implement error handling
-//        }
     }
 }

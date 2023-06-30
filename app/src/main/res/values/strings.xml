@@ -23,7 +23,8 @@
 
     <!-- machine readables -->
     <string name="apikey" translatable="false">3IaBlP9OZw14dvES</string>
-    <string name="map_url"><![CDATA[https://nextbike.net/reservation/?lat=50.7086&lng=10.6348&zoom=5&maponly=1]]></string>
-    <string name="isLoggedIn">persistence</string>
+    <string name="map_url" translatable="false"><![CDATA[https://nextbike.net/reservation/?lat=50.7086&lng=10.6348&zoom=5&maponly=1]]></string>
+    <string name="isLoggedIn" translatable="false">persistence</string>
     <string name="action_open_with">Rent with NextCompanion</string>
+    <string name="loginSharedPreferencesName" translatable="false">persistence</string>
 </resources>

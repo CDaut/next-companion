@@ -13,6 +13,7 @@ import com.example.hochi.nextcompanion.AsyncTaskCallbacks;
 import com.example.hochi.nextcompanion.R;
 import com.example.hochi.nextcompanion.request_utils.RequestHandler;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public class RentActivity extends AppCompatActivity implements AsyncTaskCallbacks<String> {
@@ -22,7 +23,7 @@ public class RentActivity extends AppCompatActivity implements AsyncTaskCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_rent);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         Button mRentSubmitButton = findViewById(R.id.rent_submit_button);
         mRentSubmitButton.setOnClickListener(view -> rentRequest());
 

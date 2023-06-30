@@ -149,7 +149,7 @@ public class LoginActivity extends AppCompatActivity implements AsyncTaskCallbac
                 JSONObject jObject = new JSONObject(response);
                 JSONObject userObject = jObject.getJSONObject("user");
                 String loginkey = userObject.getString("loginkey");
-                SharedPreferences sharedPref = getSharedPreferences("persistence", MODE_PRIVATE);
+                SharedPreferences sharedPref = getSharedPreferences(getString(R.string.loginSharedPreferencesName), MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedPref.edit();
                 editor.putString("loginKey", loginkey);
                 editor.apply();
