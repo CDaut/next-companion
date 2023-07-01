@@ -1,6 +1,5 @@
 package com.example.hochi.nextcompanion.request_utils;
 
-import android.os.AsyncTask;
 import android.util.Log;
 
 import com.example.hochi.nextcompanion.AsyncTaskCallbacks;
@@ -18,7 +17,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
-public class RequestHandler extends AsyncTask<Void, Void, String> {
+public class RequestHandler  implements Runnable {
 
     private static final String LOG_TAG = "RequestHandler";
     private static final String NEXTBIKE_API_URL = "https://api.nextbike.net/";
@@ -26,9 +25,11 @@ public class RequestHandler extends AsyncTask<Void, Void, String> {
     private final String mEndpoint;
     private final AsyncTaskCallbacks<String> callback;
     private final String[] mCredentials;
+    private String response = "";
 
     public RequestHandler(AsyncTaskCallbacks<String> act, String httpMethod,
                           String endpoint, String[] credentials) {
+        super();
         mHTTPmethod = httpMethod;
         mEndpoint = endpoint;
         mCredentials = credentials;
@@ -36,9 +37,8 @@ public class RequestHandler extends AsyncTask<Void, Void, String> {
     }
 
     @Override
-    protected String doInBackground(Void... params) {
+    public void run() {
         StringBuilder urlParameters = new StringBuilder();
-        String response = "noResponse";
 
         for (int i = 0; i < mCredentials.length; i += 2) {
             try {
@@ -54,26 +54,18 @@ public class RequestHandler extends AsyncTask<Void, Void, String> {
             URL url = new URL(NEXTBIKE_API_URL + mEndpoint);
             HttpURLConnection unclosableConnection = (HttpURLConnection) url.openConnection();
 
-            response = trySend(unclosableConnection, urlParameters.toString());
+            this.response = trySend(unclosableConnection, urlParameters.toString());
 
         } catch (MalformedURLException e) {
             Log.e(LOG_TAG, "Unparsable URL " + NEXTBIKE_API_URL + mEndpoint);
         } catch (IOException e) {
             Log.e(LOG_TAG, "An IO Error occured");
         }
-
-        return response;
+        this.done();
     }
 
-    @Override
-    protected void onPostExecute(final String response) {
-        //TODO: reimplement progress or remove support for it
-        callback.onTaskComplete(response);
-    }
-
-    @Override
-    protected void onCancelled() {
-        //TODO: proper handling if needed
+    private void done() {
+        callback.onTaskComplete(this.response);
     }
 
     private String trySend(HttpURLConnection connection, String urlParameters) throws ResourceCloseException {

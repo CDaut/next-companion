@@ -2,7 +2,9 @@ package com.example.hochi.nextcompanion.activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -15,6 +17,7 @@ import com.example.hochi.nextcompanion.request_utils.RequestHandler;
 
 public class ReturnActivity extends AppCompatActivity implements AsyncTaskCallbacks<String> {
     private String[] bikeArray;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,17 +31,17 @@ public class ReturnActivity extends AppCompatActivity implements AsyncTaskCallba
         //if GPS and electric lock, show the instruction
         TextView tv = findViewById(R.id.gps_info);
         LinearLayout la = findViewById(R.id.return_form_container);
-        if(bikeArray[2].equals("true")) {
+        if (bikeArray[2].equals("true")) {
             tv.setVisibility(View.VISIBLE);
             la.setVisibility(View.INVISIBLE);
-        }
-        else {
+        } else {
             la.setVisibility(View.VISIBLE);
             tv.setVisibility(View.INVISIBLE);
             Button mReturnSubmitButton = findViewById(R.id.return_submit_button);
             mReturnSubmitButton.setOnClickListener(view -> returnRequest());
         }
     }
+
     void returnRequest() {
         TextView mStationInput;
         mStationInput = findViewById(R.id.return_station_id);
@@ -57,7 +60,7 @@ public class ReturnActivity extends AppCompatActivity implements AsyncTaskCallba
         };
         RequestHandler returnRequestTask = new RequestHandler(this, "POST",
                 "api/return.json", params);
-        returnRequestTask.execute((Void) null);
+        new Thread(returnRequestTask).start();
     }
 
     @Override

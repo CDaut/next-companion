@@ -114,7 +114,8 @@ public class MainActivity extends AppCompatActivity implements AsyncTaskCallback
 
         RequestHandler getBikesTask = new RequestHandler(this, "POST",
                 "api/getOpenRentals.json", params);
-        getBikesTask.execute((Void) null);
+        runOnUiThread(getBikesTask);
+        //TODO: Because we perform Network IO on the main thread listing bikes is probably broken
     }
 
     @Override

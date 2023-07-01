@@ -110,7 +110,7 @@ public class LoginActivity extends AppCompatActivity implements AsyncTaskCallbac
             showProgress(true);
             mAuthTask = new RequestHandler(this, "POST",
                     "api/login.json", credentials);
-            mAuthTask.execute((Void) null);
+            new Thread(mAuthTask).start();
         }
     }
 

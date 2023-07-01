@@ -55,7 +55,7 @@ public class RentActivity extends AppCompatActivity implements AsyncTaskCallback
 
         RequestHandler rentRequestTask = new RequestHandler(this, "POST",
                 "api/rent.json", params);
-        rentRequestTask.execute((Void) null);
+        new Thread(rentRequestTask).start();
     }
 
     @Override
