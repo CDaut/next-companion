@@ -6,6 +6,8 @@ import android.content.SharedPreferences;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -13,10 +15,17 @@ import android.widget.TextView;
 
 import com.example.hochi.nextcompanion.AsyncTaskCallbacks;
 import com.example.hochi.nextcompanion.R;
-import com.example.hochi.nextcompanion.request_utils.RequestHandler;
+import com.example.hochi.nextcompanion.request_utils.HttpRequestCallable;
+
+import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class ReturnActivity extends AppCompatActivity implements AsyncTaskCallbacks<String> {
     private String[] bikeArray;
+
+    private final Executor executor = Executors.newSingleThreadExecutor();
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,9 +67,11 @@ public class ReturnActivity extends AppCompatActivity implements AsyncTaskCallba
                 "station=", stationID,
                 "comment=", ""
         };
-        RequestHandler returnRequestTask = new RequestHandler(this, "POST",
-                "api/return.json", params);
-        new Thread(returnRequestTask).start();
+        executor.execute(() -> {
+            final Optional<String> result = new HttpRequestCallable("POST",
+                    "api/return.json", params).call();
+            handler.post(() -> result.ifPresent(this::onTaskComplete));
+        });
     }
 
     @Override

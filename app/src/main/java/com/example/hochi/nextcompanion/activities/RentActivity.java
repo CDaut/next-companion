@@ -3,21 +3,29 @@ package com.example.hochi.nextcompanion.activities;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.hochi.nextcompanion.AsyncTaskCallbacks;
 import com.example.hochi.nextcompanion.R;
-import com.example.hochi.nextcompanion.request_utils.RequestHandler;
+import com.example.hochi.nextcompanion.request_utils.HttpRequestCallable;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class RentActivity extends AppCompatActivity implements AsyncTaskCallbacks<String> {
     private static final String DEBUG_TAG = "RentActivity";
+    private final Executor executor = Executors.newSingleThreadExecutor();
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,15 +55,17 @@ public class RentActivity extends AppCompatActivity implements AsyncTaskCallback
         String loginKey = sharedPref.getString("loginKey", defaultValue);
 
         String[] params = {
-                "show_errors=","1",
+                "show_errors=", "1",
                 "apikey=", getString(R.string.apikey),
                 "loginkey=", loginKey,
                 "bike=", bikeID
         };
 
-        RequestHandler rentRequestTask = new RequestHandler(this, "POST",
-                "api/rent.json", params);
-        new Thread(rentRequestTask).start();
+        executor.execute(() -> {
+            final Optional<String> result =  new HttpRequestCallable("POST",
+                    "api/rent.json", params).call();
+            handler.post(() -> result.ifPresent(this::onTaskComplete));
+        });
     }
 
     @Override

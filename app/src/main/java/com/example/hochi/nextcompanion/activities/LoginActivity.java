@@ -7,6 +7,8 @@ import android.content.SharedPreferences;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -16,9 +18,13 @@ import android.widget.TextView;
 
 import com.example.hochi.nextcompanion.AsyncTaskCallbacks;
 import com.example.hochi.nextcompanion.R;
-import com.example.hochi.nextcompanion.request_utils.RequestHandler;
+import com.example.hochi.nextcompanion.request_utils.HttpRequestCallable;
 
 import org.json.JSONObject;
+
+import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 
 /**
@@ -29,7 +35,10 @@ public class LoginActivity extends AppCompatActivity implements AsyncTaskCallbac
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
-    private RequestHandler mAuthTask = null;
+    private HttpRequestCallable mAuthTask = null;
+
+    private final Executor executor = Executors.newSingleThreadExecutor();
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
     // UI references.
     private TextView mPhoneView;
@@ -108,9 +117,13 @@ public class LoginActivity extends AppCompatActivity implements AsyncTaskCallbac
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new RequestHandler(this, "POST",
-                    "api/login.json", credentials);
-            new Thread(mAuthTask).start();
+
+            executor.execute(() -> {
+                mAuthTask = new HttpRequestCallable("POST",
+                        "api/login.json", credentials);
+                final Optional<String> result = mAuthTask.call();
+                handler.post(() -> result.ifPresent(this::onTaskComplete));
+            });
         }
     }
 

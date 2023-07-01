@@ -2,7 +2,6 @@ package com.example.hochi.nextcompanion.request_utils;
 
 import android.util.Log;
 
-import com.example.hochi.nextcompanion.AsyncTaskCallbacks;
 import com.example.hochi.nextcompanion.exceptions.ResourceCloseException;
 
 import java.io.BufferedReader;
@@ -15,29 +14,26 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
-public class RequestHandler  implements Runnable {
+public class HttpRequestCallable implements Callable<Optional<String>> {
 
     private static final String LOG_TAG = "RequestHandler";
     private static final String NEXTBIKE_API_URL = "https://api.nextbike.net/";
     private final String mHTTPmethod;
     private final String mEndpoint;
-    private final AsyncTaskCallbacks<String> callback;
     private final String[] mCredentials;
-    private String response = "";
 
-    public RequestHandler(AsyncTaskCallbacks<String> act, String httpMethod,
-                          String endpoint, String[] credentials) {
-        super();
+    public HttpRequestCallable(String httpMethod, String endpoint, String[] credentials) {
         mHTTPmethod = httpMethod;
         mEndpoint = endpoint;
         mCredentials = credentials;
-        callback = act;
     }
 
     @Override
-    public void run() {
+    public Optional<String> call() {
         StringBuilder urlParameters = new StringBuilder();
 
         for (int i = 0; i < mCredentials.length; i += 2) {
@@ -54,18 +50,15 @@ public class RequestHandler  implements Runnable {
             URL url = new URL(NEXTBIKE_API_URL + mEndpoint);
             HttpURLConnection unclosableConnection = (HttpURLConnection) url.openConnection();
 
-            this.response = trySend(unclosableConnection, urlParameters.toString());
+            return Optional.of(trySend(unclosableConnection, urlParameters.toString()));
 
         } catch (MalformedURLException e) {
             Log.e(LOG_TAG, "Unparsable URL " + NEXTBIKE_API_URL + mEndpoint);
         } catch (IOException e) {
             Log.e(LOG_TAG, "An IO Error occured");
         }
-        this.done();
-    }
 
-    private void done() {
-        callback.onTaskComplete(this.response);
+        return Optional.empty();
     }
 
     private String trySend(HttpURLConnection connection, String urlParameters) throws ResourceCloseException {

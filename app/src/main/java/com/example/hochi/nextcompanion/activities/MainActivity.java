@@ -5,9 +5,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+
+import com.example.hochi.nextcompanion.request_utils.HttpRequestCallable;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,16 +23,20 @@ import android.widget.TextView;
 
 import com.example.hochi.nextcompanion.AsyncTaskCallbacks;
 import com.example.hochi.nextcompanion.R;
-import com.example.hochi.nextcompanion.request_utils.RequestHandler;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity implements AsyncTaskCallbacks<String> {
     private static final String LOGINKEY_SHARED_PREFERENCES_KEY = "loginKey";
+    private final Executor executor = Executors.newSingleThreadExecutor();
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,10 +122,11 @@ public class MainActivity extends AppCompatActivity implements AsyncTaskCallback
                 "loginkey=", loginKey
         };
 
-        RequestHandler getBikesTask = new RequestHandler(this, "POST",
-                "api/getOpenRentals.json", params);
-        runOnUiThread(getBikesTask);
-        //TODO: Because we perform Network IO on the main thread listing bikes is probably broken
+        executor.execute(() -> {
+            final Optional<String> result = new HttpRequestCallable("POST",
+                    "api/getOpenRentals.json", params).call();
+            handler.post(() -> result.ifPresent(this::onTaskComplete));
+        });
     }
 
     @Override
